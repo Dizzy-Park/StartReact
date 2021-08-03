@@ -1,5 +1,5 @@
 # StartReact
-# React 프로젝트 설정시 기본설정하는 것 정리
+
 ### 사용법 
 1. git clone
 2. 폴더 이동
