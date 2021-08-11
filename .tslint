@@ -1,0 +1,7 @@
+{
+  "rules": {
+    "no-console": false,
+    "member-access": [true, "no-public"],
+    "jsx-no-lambda": false
+  }
+}
