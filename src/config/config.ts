@@ -1,22 +1,17 @@
-import configFile from "./config.json";
-
-const serverEnv = process.env.NODE_ENV;
-const con = configFile[serverEnv];
-
 export interface IURL {
-  BACKEND_URL: string;
-  IMAGE_URL: string;
-  REDIRECT_URL: string;
+  BACKEND_URL: string | undefined;
+  MESSAGE_URL: string | undefined;
 }
 
 export interface IConfig {
+  Env: string | undefined;
   Url: IURL;
 }
 
 export const config: IConfig = {
+  Env: process.env.NODE_ENV,
   Url: {
-    BACKEND_URL: con["BACKEND_URL"],
-    IMAGE_URL: con["IMAGE_URL"],
-    REDIRECT_URL: con["REDIRECT_URL"],
+    BACKEND_URL: process.env.REACT_APP_BACKEND_URL,
+    MESSAGE_URL: process.env.REACT_APP_MESSAGE_URL,
   },
 };

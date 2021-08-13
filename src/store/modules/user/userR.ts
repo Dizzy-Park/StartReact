@@ -102,21 +102,19 @@ const userSlice = createSlice({
     // pending 액션을 통해 상태를 변화 시키기 위한 등록
     // 서버 통신하기전 호출되는 함수
     builder.addCase(fetchLogin.pending, (state: IUser, action) => {
-      console.log("호출 전", state, action);
       return { ...state, reqId: action.meta.requestId };
     });
     // fulfilled 액션을 통해 상태를 변화 시키기 위한 등록
     // 서버 통신후 성공 하면 호출되는 함수
     builder.addCase(fetchLogin.fulfilled, (state: IUser, { payload }) => {
-      console.log("성공", state);
       if (payload.result) {
         const expires = new Date();
         expires.setDate(Date.now() + 1000 * 60 * 60 * 24);
-        localStorage.setItem("token", payload.data);
+        // localStorage.setItem("token", payload.data);
         sessionStorage.setItem("token", payload.data);
-        Http.defaults.headers["sessionStorage"] =
+        Http.defaults.headers["xxx-login-token"] =
           sessionStorage.getItem("token");
-        Http.defaults.headers["localStorage"] = localStorage.getItem("token");
+        // Http.defaults.headers["localStorage"] = localStorage.getItem("token");
       } else {
         console.log(payload.data);
       }
@@ -128,17 +126,15 @@ const userSlice = createSlice({
     });
     /** logout */
     builder.addCase(fetchLogout.pending, (state: IUser, action) => {
-      console.log("호출 전", state, action);
       return { ...state, reqId: action.meta.requestId };
     });
     builder.addCase(fetchLogout.fulfilled, (state: IUser, { payload }) => {
-      console.log("성공", state);
       if (payload.result) {
         localStorage.removeItem("token");
         sessionStorage.removeItem("token");
-        delete Http.defaults.headers["sessionStorage"];
-        delete Http.defaults.headers["localStorage"];
-        delete Http.defaults.headers["cookies"];
+        delete Http.defaults.headers["xxx-login-token"];
+        // delete Http.defaults.headers["localStorage"];
+        // delete Http.defaults.headers["cookies"];
       }
     });
     builder.addCase(fetchLogout.rejected, (state: IUser, action) => {

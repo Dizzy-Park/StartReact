@@ -20,4 +20,5 @@ const store: EnhancedStore = configureStore({
   devTools: process.env.NODE_ENV !== "production",
 });
 
+export type dispatch = typeof store.dispatch;
 export default store;

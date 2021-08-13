@@ -1,8 +1,7 @@
 import React from "react";
-import { useSelector } from "react-redux";
-import { RootState } from "../store/modules";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import styled from "styled-components";
+import useLoading from "../store/modules/loading/loadingHook";
 
 const LoadingArea = styled.div`
   width: 100%;
@@ -19,10 +18,10 @@ const LoadingIcon = styled.div`
 `;
 
 const LoadingView: React.FC = () => {
-  const { loading } = useSelector((state: RootState) => state.loading);
+  const { isLoading } = useLoading();
   return (
     <>
-      {loading === false ? (
+      {isLoading === false ? (
         ""
       ) : (
         <>

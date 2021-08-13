@@ -37,6 +37,13 @@ const Index: React.FC<Props> = () => {
   const password: IUseInput = useInput<HTMLButtonElement>("", submit);
   // userHook.ts 에서 가지고온 hook
   const { login, errorMessage } = useUser();
+  const loginHandler = async () => {
+    if (email.value !== "" && password.value !== "") {
+      login({ email: email.value, pwd: password.value } as IUserFetc);
+    } else {
+      alert("입력해라");
+    }
+  };
   return (
     <>
       <ContainerMainView>
@@ -59,13 +66,7 @@ const Index: React.FC<Props> = () => {
           </BoxDiv>
         </TokenArea>
         <BoxDiv>
-          <Button
-            variant="outlined"
-            ref={submit}
-            onClick={() =>
-              login({ email: email.value, pwd: password.value } as IUserFetc)
-            }
-          >
+          <Button variant="outlined" ref={submit} onClick={loginHandler}>
             토큰 쿠키 저장
           </Button>
         </BoxDiv>
