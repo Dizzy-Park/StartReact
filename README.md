@@ -43,4 +43,8 @@
 ### 그 외
 
 - **axios** (통신 모듈)
+- **socket.io-client** (웹소켓 통신)
+- **@types/socket.io-client** (웹소켓 통신)
 - **cross-env** (환경설정 처리)
+- **node-rsa** (`RSA` 암호화)
+- **@types/node-rsa** (`RSA` 암호화)
