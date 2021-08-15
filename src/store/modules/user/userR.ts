@@ -27,75 +27,94 @@ export interface IUserFetc {
   pwd: string;
 }
 
+export interface IResLogin {
+  token: string;
+  key: string;
+}
+
 /**
  * CSR 에서 로그인을 위한 서버통신 액션 함수
  * 비동기 함수를 생성 pending, fulfilled, rejected 를 실행되게
  */
-export const fetchLogin: AsyncThunk<IRes, IUserFetc, { state: RootState }> =
-  createAsyncThunk<IRes, IUserFetc, { state: RootState }>(
-    `${name}/fetchLogin`,
-    async (params: IUserFetc, thunkApi) => {
-      try {
-        return login(params);
-      } catch (err) {
-        // 통신 실패 처리
-        return thunkApi.rejectWithValue(err.response.data);
+export const fetchLogin: AsyncThunk<
+  IRes<IResLogin>,
+  IUserFetc,
+  { state: RootState }
+> = createAsyncThunk<IRes<IResLogin>, IUserFetc, { state: RootState }>(
+  `${name}/fetchLogin`,
+  async (params: IUserFetc, thunkApi) => {
+    try {
+      return login(params);
+    } catch (err) {
+      // 통신 실패 처리
+      return thunkApi.rejectWithValue(err.response.data);
+    }
+  },
+  {
+    // 값을 알수없음 무었이 넘어오는지 확인이 필요함
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    condition: (params: IUserFetc, thunkApi) => {
+      // 통신 중단 조건 처리
+      if (params.email === "" || params.pwd === "") {
+        return false;
       }
     },
-    {
-      // 값을 알수없음 무었이 넘어오는지 확인이 필요함
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      condition: (params: IUserFetc, thunkApi) => {
-        // 통신 중단 조건 처리
-        if (params.email === "" || params.pwd === "") {
-          return false;
-        }
-      },
-      // condition 에서 return 값이 false 이면 rejected 가 실행되게 처리
-      dispatchConditionRejection: true,
-    }
-  );
+    // condition 에서 return 값이 false 이면 rejected 가 실행되게 처리
+    dispatchConditionRejection: true,
+  }
+);
 /**
  * SSR 일때 통신하기 위한 함수
  * @param params IUserFetc
  * @returns
  */
-export const login: (param: IUserFetc) => Promise<IRes> = async (
+export const login: (param: IUserFetc) => Promise<IRes<IResLogin>> = async (
   params: IUserFetc
-): Promise<IRes> => {
-  const res: AxiosResponse<IRes> = await Http.post("/user/login", params);
+): Promise<IRes<IResLogin>> => {
+  const res: AxiosResponse<IRes<IResLogin>> = await Http.post(
+    "/user/login",
+    params
+  );
   return res.data;
 };
 /**
  * CSR 에서 로그아웃 처리를 위한 액션 함수
  */
-export const fetchLogout: AsyncThunk<IRes, void, { state: RootState }> =
-  createAsyncThunk<IRes>(`${name}/fetchLogout`, async (_, thunkApi) => {
+export const fetchLogout: AsyncThunk<
+  IRes<string>,
+  void,
+  { state: RootState }
+> = createAsyncThunk<IRes<string>>(
+  `${name}/fetchLogout`,
+  async (_, thunkApi) => {
     try {
       return logout();
     } catch (err) {
       return thunkApi.rejectWithValue(err.response.data);
     }
-  });
+  }
+);
 /**
  * SSR 일때 통신하기 위한 함수
  * @returns
  */
-export const logout: () => Promise<IRes> = async (): Promise<IRes> => {
-  const res: AxiosResponse<IRes> = await Http.post("/user/logout");
+export const logout: () => Promise<IRes<string>> = async (): Promise<
+  IRes<string>
+> => {
+  const res: AxiosResponse<IRes<string>> = await Http.post("/user/logout");
   return res.data;
 };
 
 // data 를 관리하는 reducer 설정
 const userSlice = createSlice({
   name,
-  initialState: { reqId: "", id: "", uname: "" } as IUser,
+  initialState: { reqId: "", id: "" } as IUser,
   reducers: {
     loginAction(state: IUser, action: PayloadAction<IUser>) {
       return { ...state, ...action.payload };
     },
     logoutAction() {
-      return { reqId: "", id: "", uname: "" };
+      return { reqId: "", id: "" };
     },
   },
   extraReducers: builder => {
@@ -111,7 +130,9 @@ const userSlice = createSlice({
         const expires = new Date();
         expires.setDate(Date.now() + 1000 * 60 * 60 * 24);
         // localStorage.setItem("token", payload.data);
-        sessionStorage.setItem("token", payload.data);
+        const loginpayload: IResLogin = payload.data as IResLogin;
+        sessionStorage.setItem("token", loginpayload.token);
+        sessionStorage.setItem("key", loginpayload.key);
         Http.defaults.headers["xxx-login-token"] =
           sessionStorage.getItem("token");
         // Http.defaults.headers["localStorage"] = localStorage.getItem("token");

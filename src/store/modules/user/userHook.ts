@@ -22,7 +22,6 @@ export interface IUseUserReturn {
 const useUser = (): IUseUserReturn => {
   // 화면상에 표시될 값 설정
   const { id, uname } = useSelector((state: State) => state.user);
-  const { errorMessage } = useSelector((state: State) => state.loading);
   const { alert, on, off } = useLoading();
   const dispatch = useDispatch();
   /**
@@ -65,7 +64,7 @@ const useUser = (): IUseUserReturn => {
     off();
   }, []);
 
-  return { id, uname, errorMessage, login, logout } as IUseUserReturn;
+  return { id, uname, login, logout } as IUseUserReturn;
 };
 
 export default useUser;

@@ -1,6 +1,7 @@
 import { AnyAction, ReducersMapObject } from "@reduxjs/toolkit";
 import { combineReducers } from "redux";
 import loading, { ILoadingState } from "./loading/loadingR";
+import security, { ISecurity } from "./security/securityR";
 import soket, { ISocket } from "./soket/soketR";
 import user, { IUser } from "./user/userR";
 
@@ -11,6 +12,7 @@ export interface State {
   loading: ILoadingState;
   user: IUser;
   soket: ISocket;
+  security: ISecurity;
 }
 
 /**
@@ -28,6 +30,7 @@ const rootReducer = (state: State | undefined, action: AnyAction) => {
         loading,
         user,
         soket,
+        security,
       } as ReducersMapObject)(state, action);
   }
 };

@@ -10,16 +10,24 @@ const Http: AxiosInstance = axios.create({
     enctype: "multipart/form-data",
   },
 });
+
 /**
  * 서버에서 반환되는 JSON 값 설정
  */
-export interface IRes {
+export interface IRes<T> {
   result: boolean;
-  data: string;
-  error?: string | null | { name: string; message: string };
+  data?: T;
+  error?: null | IResError;
   // 아직 확인되지 않음
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   meta?: any;
+}
+
+export interface IResError {
+  code: number;
+  message: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  error?: any;
 }
 
 export default Http;
