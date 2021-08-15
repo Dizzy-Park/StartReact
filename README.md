@@ -5,7 +5,12 @@
 1. git clone
 2. 폴더 이동
 3. 명령어 실행: npm i
-4. 명령어 실행: npm run dev
+4. 리엑트 실행: 
+    - npm run start 기본 데브서버 연결
+    - npm run start:local 로컬 서버 연결
+    - npm run start:build 운영 서버 연결
+    - npm run build:dev 데브서버에 올릴 정적파일 만들기
+    - npm run build:build 운영 서버에 올릴 정적파일 만들기
 
 > `react` 데이터를 관리할수 있게 `redux` 를 구성하고
 > User Login 을 기본 예제로 적용시켜놓았습니다.
