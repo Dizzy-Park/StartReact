@@ -8,6 +8,7 @@ import { AxiosResponse } from "axios";
 import { RootState } from "..";
 
 import Http, { IRes } from "../../net/Http";
+import { decrypt } from "../../net/Security";
 
 // 이름 설정
 const name = "user";
@@ -132,8 +133,8 @@ const userSlice = createSlice({
         // localStorage.setItem("token", payload.data);
         const loginpayload: IResLogin = payload.data as IResLogin;
         sessionStorage.setItem("token", loginpayload.token);
-        sessionStorage.setItem("key", loginpayload.key);
-        Http.defaults.headers["xxx-login-token"] =
+        sessionStorage.setItem("key", decrypt(loginpayload.key));
+        Http.defaults.headers["x-access-token"] =
           sessionStorage.getItem("token");
         // Http.defaults.headers["localStorage"] = localStorage.getItem("token");
       } else {

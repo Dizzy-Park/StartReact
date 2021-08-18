@@ -6,6 +6,8 @@ import { State } from "..";
 import useLoading from "../loading/loadingHook";
 import { connect, disconnect } from "../../net/Soket";
 import { disconnected } from "../soket/soketR";
+import useSecurity from "../security/securityHook";
+import { fetchSecurity } from "../security/securityR";
 
 export interface IUseUserReturn {
   id: string;
@@ -33,12 +35,24 @@ const useUser = (): IUseUserReturn => {
       // 통신 호출 any 를 대체할 타입 확인 필요
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const res: any = await dispatch(fetchLogin(data));
+      console.log(res);
       if (res.payload.result) {
         connect();
+        // 통신 호출 any 를 대체할 타입 확인 필요
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const res: any = await dispatch(fetchSecurity());
+        console.log(res);
+
+        if (res.payload.result) {
+          // 성공시 페이지 이동
+        } else {
+          // 에러 처리
+          alert(res.payload.error.message);
+        }
         // 성공시 페이지 이동
       } else {
         // 에러 처리
-        alert(res.payload.data);
+        alert(res.payload.error.message);
       }
       console.log("login", res);
       off();

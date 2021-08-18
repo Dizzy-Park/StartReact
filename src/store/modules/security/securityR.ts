@@ -2,6 +2,7 @@ import { AsyncThunk, createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { AxiosResponse } from "axios";
 import { RootState } from "..";
 import Http, { IRes } from "../../net/Http";
+import { encript } from "../../net/Security";
 
 const name = "security";
 
@@ -40,7 +41,7 @@ export const getKey: () => Promise<IRes<ISecurity>> = async (): Promise<
 > => {
   const key = sessionStorage.getItem("key");
   const res: AxiosResponse<IRes<ISecurity>> = await Http.post("/user/key", {
-    key: key,
+    key: encript(key as string),
   });
   return res.data;
 };
@@ -66,7 +67,7 @@ const securitySlice = createSlice({
       fetchSecurity.fulfilled,
       (state: ISecurity, { payload }) => {
         if (payload.result) {
-          return { ...state, ...payload };
+          return { ...state, ...payload.data };
         } else {
           console.log(payload.data);
         }

@@ -1,7 +1,4 @@
-import Socket from "socket.io-client";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { config } from "../../../config/config";
 
 const name = "socket";
 
@@ -17,46 +14,6 @@ export interface Message {
 export interface ISocket {
   id: string;
 }
-
-export const api = createApi({
-  baseQuery: fetchBaseQuery({ baseUrl: "/" }),
-  endpoints: build => ({
-    getMessages: build.query<ISocket, Channel>({
-      query: channel => `messages/${channel}`,
-      async onCacheEntryAdded(
-        arg,
-        { updateCachedData, cacheDataLoaded, cacheEntryRemoved }
-      ) {
-        // create a websocket connection when the cache subscription starts
-        const ws = Socket(config.Url.MESSAGE_URL as string);
-        try {
-          // wait for the initial query to resolve before proceeding
-          await cacheDataLoaded;
-
-          // when data is received from the socket connection to the server,
-          // if it is a message and for the appropriate channel,
-          // update our query result with the received message
-          const listener = (data: string) => {
-            updateCachedData(draft => {
-              draft.id = data;
-            });
-          };
-
-          ws.on("connected", listener);
-        } catch {
-          // no-op in case `cacheEntryRemoved` resolves before `cacheDataLoaded`,
-          // in which case `cacheDataLoaded` will throw
-        }
-        // cacheEntryRemoved will resolve when the cache subscription is no longer active
-        await cacheEntryRemoved;
-        // perform cleanup steps once the `cacheEntryRemoved` promise resolves
-        ws.close();
-      },
-    }),
-  }),
-});
-
-export const { useGetMessagesQuery } = api;
 
 const soketSlice = createSlice({
   name,
