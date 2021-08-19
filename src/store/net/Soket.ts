@@ -19,6 +19,7 @@ socket.on("connected", async (data: string) => {
  * 소켓 연결
  */
 export const connect: () => void = async () => {
+  // 소켓 연결시 인증 토큰 추가
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const auth: any = {};
   auth[config.token.header] = sessionStorage.getItem(config.token.name);

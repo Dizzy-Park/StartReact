@@ -36,6 +36,7 @@ const RootApp: React.FC = () => {
       Http.defaults.headers[config.token.header] = sessionStorage.getItem(
         config.token.name
       );
+      // 토큰이 있으면 소켓 재 연결
       connect();
     }
     // localStorage 에 값이 있는지 확인후 헤더 설정
