@@ -6,8 +6,7 @@ import { State } from "..";
 import useLoading from "../loading/loadingHook";
 import { connect, disconnect } from "../../net/Soket";
 import { disconnected } from "../soket/soketR";
-import useSecurity from "../security/securityHook";
-import { fetchSecurity } from "../security/securityR";
+import { fetchSecurity, logoutAction } from "../security/securityR";
 
 export interface IUseUserReturn {
   id: string;
@@ -70,6 +69,7 @@ const useUser = (): IUseUserReturn => {
     if (res.payload.result) {
       disconnect();
       dispatch(disconnected());
+      dispatch(logoutAction());
       // 성공시 페이지 이동
     } else {
       // 에러 처리

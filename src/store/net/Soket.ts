@@ -5,6 +5,7 @@ import { CONNECTED } from "../modules/soket/soketR";
 
 const socket: Socket = io(config.Url.MESSAGE_URL as string, {
   autoConnect: false,
+  transports: ["websocket"],
 });
 
 /**
@@ -18,6 +19,10 @@ socket.on("connected", async (data: string) => {
  * 소켓 연결
  */
 export const connect: () => void = async () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const auth: any = {};
+  auth[config.token.header] = sessionStorage.getItem(config.token.name);
+  socket.auth = auth;
   socket.connect();
 };
 /**

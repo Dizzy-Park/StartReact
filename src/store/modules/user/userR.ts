@@ -6,6 +6,7 @@ import {
 } from "@reduxjs/toolkit";
 import { AxiosResponse } from "axios";
 import { RootState } from "..";
+import { config } from "../../../config/config";
 
 import Http, { IRes } from "../../net/Http";
 import { decrypt } from "../../net/Security";
@@ -132,10 +133,11 @@ const userSlice = createSlice({
         expires.setDate(Date.now() + 1000 * 60 * 60 * 24);
         // localStorage.setItem("token", payload.data);
         const loginpayload: IResLogin = payload.data as IResLogin;
-        sessionStorage.setItem("token", loginpayload.token);
+        sessionStorage.setItem(config.token.name, loginpayload.token);
         sessionStorage.setItem("key", decrypt(loginpayload.key));
-        Http.defaults.headers["x-access-token"] =
-          sessionStorage.getItem("token");
+        Http.defaults.headers[config.token.header] = sessionStorage.getItem(
+          config.token.name
+        );
         // Http.defaults.headers["localStorage"] = localStorage.getItem("token");
       } else {
         console.log(payload.data);
@@ -152,9 +154,9 @@ const userSlice = createSlice({
     });
     builder.addCase(fetchLogout.fulfilled, (state: IUser, { payload }) => {
       if (payload.result) {
-        localStorage.removeItem("token");
-        sessionStorage.removeItem("token");
-        delete Http.defaults.headers["xxx-login-token"];
+        localStorage.removeItem(config.token.name);
+        sessionStorage.removeItem(config.token.name);
+        delete Http.defaults.headers[config.token.header];
         // delete Http.defaults.headers["localStorage"];
         // delete Http.defaults.headers["cookies"];
       }

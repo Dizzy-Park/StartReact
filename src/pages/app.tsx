@@ -14,6 +14,8 @@ import Http from "../store/net/Http";
 import LoadingView from "../components/LoadingView";
 import Index from "./index";
 import User from "./user";
+import { config } from "../config/config";
+import { connect } from "../store/net/Soket";
 
 // import { ADD_ERROR, LOADING_ON } from '../store/modules/loadingR';
 // import { logout } from '../store/modules/user/userR';
@@ -28,17 +30,22 @@ const RootApp: React.FC = () => {
   if (typeof window !== "undefined") {
     // sessionStorage 에 값이 있는지 확인후 헤더 설정
     if (
-      (sessionStorage.getItem("token") === "" ||
-        sessionStorage.getItem("token") === null) === false
+      (sessionStorage.getItem(config.token.name) === "" ||
+        sessionStorage.getItem(config.token.name) === null) === false
     ) {
-      Http.defaults.headers["sessionStorage"] = sessionStorage.getItem("token");
+      Http.defaults.headers[config.token.header] = sessionStorage.getItem(
+        config.token.name
+      );
+      connect();
     }
     // localStorage 에 값이 있는지 확인후 헤더 설정
     if (
-      (localStorage.getItem("token") === "" ||
-        localStorage.getItem("token") === null) === false
+      (localStorage.getItem(config.token.name) === "" ||
+        localStorage.getItem(config.token.name) === null) === false
     ) {
-      Http.defaults.headers["localStorage"] = localStorage.getItem("token");
+      Http.defaults.headers[config.token.header] = localStorage.getItem(
+        config.token.name
+      );
     }
   }
   /**
