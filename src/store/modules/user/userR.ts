@@ -44,13 +44,8 @@ export const fetchLogin: AsyncThunk<
   { state: RootState }
 > = createAsyncThunk<IRes<IResLogin>, IUserFetc, { state: RootState }>(
   `${name}/fetchLogin`,
-  async (params: IUserFetc, thunkApi) => {
-    try {
-      return login(params);
-    } catch (err) {
-      // 통신 실패 처리
-      return thunkApi.rejectWithValue(err.response.data);
-    }
+  async (params: IUserFetc) => {
+    return login(params);
   },
   {
     // 값을 알수없음 무었이 넘어오는지 확인이 필요함
@@ -86,16 +81,9 @@ export const fetchLogout: AsyncThunk<
   IRes<string>,
   void,
   { state: RootState }
-> = createAsyncThunk<IRes<string>>(
-  `${name}/fetchLogout`,
-  async (_, thunkApi) => {
-    try {
-      return logout();
-    } catch (err) {
-      return thunkApi.rejectWithValue(err.response.data);
-    }
-  }
-);
+> = createAsyncThunk<IRes<string>>(`${name}/fetchLogout`, async () => {
+  return logout();
+});
 /**
  * SSR 일때 통신하기 위한 함수
  * @returns
@@ -135,9 +123,8 @@ const userSlice = createSlice({
         const loginpayload: IResLogin = payload.data as IResLogin;
         sessionStorage.setItem(config.token.name, loginpayload.token);
         sessionStorage.setItem("key", decrypt(loginpayload.key));
-        Http.defaults.headers[config.token.header] = sessionStorage.getItem(
-          config.token.name
-        );
+        Http.defaults.headers.common[config.token.header] =
+          sessionStorage.getItem(config.token.name) as string;
         // Http.defaults.headers["localStorage"] = localStorage.getItem("token");
       } else {
         console.log(payload.data);
@@ -156,7 +143,7 @@ const userSlice = createSlice({
       if (payload.result) {
         localStorage.removeItem(config.token.name);
         sessionStorage.removeItem(config.token.name);
-        delete Http.defaults.headers[config.token.header];
+        delete Http.defaults.headers.common[config.token.header];
         // delete Http.defaults.headers["localStorage"];
         // delete Http.defaults.headers["cookies"];
       }

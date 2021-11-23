@@ -4,6 +4,7 @@ import loading, { ILoadingState } from "./loading/loadingR";
 import security, { ISecurity } from "./security/securityR";
 import soket, { ISocket } from "./soket/soketR";
 import user, { IUser } from "./user/userR";
+import popup, { IPopupState } from "./popup/popupR";
 
 /**
  * state interface 설정
@@ -13,6 +14,7 @@ export interface State {
   user: IUser;
   soket: ISocket;
   security: ISecurity;
+  popup: IPopupState;
 }
 
 /**
@@ -31,6 +33,7 @@ const rootReducer = (state: State | undefined, action: AnyAction) => {
         user,
         soket,
         security,
+        popup,
       } as ReducersMapObject)(state, action);
   }
 };

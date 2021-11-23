@@ -5,7 +5,7 @@ import {
 } from "@material-ui/core";
 import { ThemeProvider as StyledThemeProvider } from "styled-components";
 import React from "react";
-import { BrowserRouter, Redirect, Route, Switch } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import Layout from "../components/layout/Layout";
 import { theme } from "../styles/theme";
@@ -33,9 +33,8 @@ const RootApp: React.FC = () => {
       (sessionStorage.getItem(config.token.name) === "" ||
         sessionStorage.getItem(config.token.name) === null) === false
     ) {
-      Http.defaults.headers[config.token.header] = sessionStorage.getItem(
-        config.token.name
-      );
+      Http.defaults.headers.common[config.token.header] =
+        sessionStorage.getItem(config.token.name) as string;
       // 토큰이 있으면 소켓 재 연결
       connect();
     }
@@ -44,9 +43,9 @@ const RootApp: React.FC = () => {
       (localStorage.getItem(config.token.name) === "" ||
         localStorage.getItem(config.token.name) === null) === false
     ) {
-      Http.defaults.headers[config.token.header] = localStorage.getItem(
+      Http.defaults.headers.common[config.token.header] = localStorage.getItem(
         config.token.name
-      );
+      ) as string;
     }
   }
   /**
@@ -64,11 +63,10 @@ const RootApp: React.FC = () => {
             <LoadingView />
             {/* 기본 레이아웃을 잡기위한 컴포넌트 */}
             <Layout>
-              <Switch>
-                <Route path="/" component={Index} />
-                <Route path="/user" component={User} />
-                <Redirect path="*" to="/" />
-              </Switch>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/user" element={<User />} />
+              </Routes>
             </Layout>
           </MuiThemeProvider>
         </StyledThemeProvider>

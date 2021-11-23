@@ -22,13 +22,8 @@ export const fetchSecurity: AsyncThunk<
   { state: RootState }
 > = createAsyncThunk<IRes<ISecurity>, void, { state: RootState }>(
   `${name}/fetchSecurity`,
-  async (_, thunkApi) => {
-    try {
-      return getKey();
-    } catch (err) {
-      // 통신 실패 처리
-      return thunkApi.rejectWithValue(err.response.data);
-    }
+  async () => {
+    return getKey();
   }
 );
 /**

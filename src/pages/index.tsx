@@ -32,9 +32,9 @@ const Index: React.FC<Props> = () => {
   // button 참조
   const submit: RefObject<HTMLButtonElement> = useRef<HTMLButtonElement>(null);
   // email input 연결 Hook 설정
-  const email: IUseInput = useInput<HTMLInputElement>("", passwordRef);
+  const email: IUseInput = useInput<HTMLInputElement>({ target: passwordRef });
   // password input 연결 Hook 설정
-  const password: IUseInput = useInput<HTMLButtonElement>("", submit);
+  const password: IUseInput = useInput<HTMLButtonElement>({ target: submit });
   // userHook.ts 에서 가지고온 hook
   const { login, errorMessage } = useUser();
   const loginHandler = async () => {
