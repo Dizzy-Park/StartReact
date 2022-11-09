@@ -1,21 +1,17 @@
-import {
-  CssBaseline,
-  StylesProvider,
-  ThemeProvider as MuiThemeProvider,
-} from "@material-ui/core";
-import { ThemeProvider as StyledThemeProvider } from "styled-components";
-import React from "react";
+import { DefaultTheme, ThemeProvider } from "styled-components";
+import React, { lazy, Suspense, useState } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-
-import Layout from "../components/layout/Layout";
-import { theme } from "../styles/theme";
 import Http from "../store/net/Http";
 // import { IRes } from '../store/net/Http';
-import LoadingView from "../components/LoadingView";
 import Index from "./index";
-import User from "./user";
 import { config } from "../config/config";
-import { connect } from "../store/net/Soket";
+import { GlobalStyle } from "styles/globalStyle";
+import { lightTheme } from "styles/theme";
+import LoadingView from "commons/loading/LoadingView";
+import Popup from "commons/popup/PopupController";
+import Layer from "commons/layers/LayerController";
+
+const User = lazy(() => import("./user"));
 
 // import { ADD_ERROR, LOADING_ON } from '../store/modules/loadingR';
 // import { logout } from '../store/modules/user/userR';
@@ -35,8 +31,6 @@ const RootApp: React.FC = () => {
     ) {
       Http.defaults.headers.common[config.token.header] =
         sessionStorage.getItem(config.token.name) as string;
-      // 토큰이 있으면 소켓 재 연결
-      connect();
     }
     // localStorage 에 값이 있는지 확인후 헤더 설정
     if (
@@ -48,30 +42,35 @@ const RootApp: React.FC = () => {
       ) as string;
     }
   }
+  const [theme] = useState<DefaultTheme>(lightTheme);
   /**
    * styled-components 와 @material-ui/core 에 하나의 테마를 적용하기 위한 기본 코드
    * 모든 페이지는 이 파일을 통해서 구성된다
    */
   return (
-    <BrowserRouter>
-      <StylesProvider injectFirst>
+    <ThemeProvider theme={{ ...theme }}>
+      <GlobalStyle />
+      <BrowserRouter>
+        <Popup />
         {/* styled-components 에 테마를 적용하기 위한 코드 */}
-        <StyledThemeProvider theme={theme}>
-          {/* @material-ui/core 에 테마를 적용하기 위한 코드 */}
-          <MuiThemeProvider theme={theme}>
-            <CssBaseline />
-            <LoadingView />
-            {/* 기본 레이아웃을 잡기위한 컴포넌트 */}
-            <Layout>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/user" element={<User />} />
-              </Routes>
-            </Layout>
-          </MuiThemeProvider>
-        </StyledThemeProvider>
-      </StylesProvider>
-    </BrowserRouter>
+        <LoadingView />
+        <Layer />
+        {/* 기본 레이아웃을 잡기위한 컴포넌트 */}
+        <Suspense fallback={"로딩중입니다"}>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route
+              path="/user"
+              element={
+                <Suspense fallback={"로딩중입니다"}>
+                  <User />
+                </Suspense>
+              }
+            />
+          </Routes>
+        </Suspense>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 };
 

@@ -1,4 +1,4 @@
-import { Button } from "@material-ui/core";
+import Button from "components/atoms/Button";
 import React from "react";
 import useUser from "../store/modules/user/userHook";
 

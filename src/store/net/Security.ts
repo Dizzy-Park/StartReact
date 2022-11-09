@@ -1,5 +1,4 @@
 import crypto, { Cipher, Decipher } from "crypto";
-import useSecurity from "../modules/security/securityHook";
 
 const publicKey = `-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAi2MDZTLGU7tIqsICGByy
@@ -22,57 +21,57 @@ enum Encode {
   HEX = "hex",
 }
 
-const getCipher = (): ICipherParam => {
-  const { key, slice } = useSecurity();
-  const sba: Buffer = Buffer.from(key, Encode.UTF8);
-  const iv: Buffer = Buffer.from(sba.slice(0, slice));
-  return { CipherKey: sba, BinaryLike: iv };
-};
+// const getCipher = (): ICipherParam => {
+//   const { key, slice } = useSecurity();
+//   const sba: Buffer = Buffer.from(key, Encode.UTF8);
+//   const iv: Buffer = Buffer.from(sba.slice(0, slice));
+//   return { CipherKey: sba, BinaryLike: iv };
+// };
 
 /**
  * AES 암호화 처리
  * @param data string
  * @returns string
  */
-export const _encode = (data: string): string => {
-  if (data) {
-    const { algorithm } = useSecurity();
-    const param: ICipherParam = getCipher();
-    const cipher: Cipher = crypto.createCipheriv(
-      algorithm,
-      param.CipherKey,
-      param.BinaryLike
-    );
-    const result: string = cipher.update(
-      data.toString(),
-      Encode.UTF8,
-      Encode.BASE64
-    );
-    return result + cipher.final(Encode.BASE64);
-  } else {
-    return data;
-  }
-};
+// export const _encode = (data: string): string => {
+//   if (data) {
+//     const { algorithm } = useSecurity();
+//     const param: ICipherParam = getCipher();
+//     const cipher: Cipher = crypto.createCipheriv(
+//       algorithm,
+//       param.CipherKey,
+//       param.BinaryLike
+//     );
+//     const result: string = cipher.update(
+//       data.toString(),
+//       Encode.UTF8,
+//       Encode.BASE64
+//     );
+//     return result + cipher.final(Encode.BASE64);
+//   } else {
+//     return data;
+//   }
+// };
 /**
  * AES 복호화 처리
  * @param data string
  * @returns string
  */
-export const _decode = (data: string): string => {
-  if (data) {
-    const { algorithm } = useSecurity();
-    const param: ICipherParam = getCipher();
-    const cipher: Decipher = crypto.createDecipheriv(
-      algorithm,
-      param.CipherKey,
-      param.BinaryLike
-    );
-    const result: string = cipher.update(data, Encode.BASE64, Encode.UTF8);
-    return result + cipher.final(Encode.UTF8);
-  } else {
-    return data;
-  }
-};
+// export const _decode = (data: string): string => {
+//   if (data) {
+//     const { algorithm } = useSecurity();
+//     const param: ICipherParam = getCipher();
+//     const cipher: Decipher = crypto.createDecipheriv(
+//       algorithm,
+//       param.CipherKey,
+//       param.BinaryLike
+//     );
+//     const result: string = cipher.update(data, Encode.BASE64, Encode.UTF8);
+//     return result + cipher.final(Encode.UTF8);
+//   } else {
+//     return data;
+//   }
+// };
 
 /**
  * RSDA 암호

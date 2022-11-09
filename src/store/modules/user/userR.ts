@@ -1,15 +1,6 @@
-import {
-  AsyncThunk,
-  createAsyncThunk,
-  createSlice,
-  PayloadAction,
-} from "@reduxjs/toolkit";
-import { AxiosResponse } from "axios";
-import { RootState } from "..";
-import { config } from "../../../config/config";
-
-import Http, { IRes } from "../../net/Http";
-import { decrypt } from "../../net/Security";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import Http, { IRes } from "commons/Http";
+import { createAppThunk } from "store/common";
 
 // 이름 설정
 const name = "user";
@@ -38,62 +29,24 @@ export interface IResLogin {
  * CSR 에서 로그인을 위한 서버통신 액션 함수
  * 비동기 함수를 생성 pending, fulfilled, rejected 를 실행되게
  */
-export const fetchLogin: AsyncThunk<
-  IRes<IResLogin>,
-  IUserFetc,
-  { state: RootState }
-> = createAsyncThunk<IRes<IResLogin>, IUserFetc, { state: RootState }>(
+export const fetchLogin = createAppThunk<IResLogin, IUserFetc>(
   `${name}/fetchLogin`,
-  async (params: IUserFetc) => {
-    return login(params);
-  },
-  {
-    // 값을 알수없음 무었이 넘어오는지 확인이 필요함
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    condition: (params: IUserFetc, thunkApi) => {
-      // 통신 중단 조건 처리
-      if (params.email === "" || params.pwd === "") {
-        return false;
-      }
-    },
-    // condition 에서 return 값이 false 이면 rejected 가 실행되게 처리
-    dispatchConditionRejection: true,
+  async params => {
+    const res = await Http.post<IRes<IResLogin>>("/user/login", params);
+    return res.data;
   }
 );
 /**
- * SSR 일때 통신하기 위한 함수
- * @param params IUserFetc
- * @returns
- */
-export const login: (param: IUserFetc) => Promise<IRes<IResLogin>> = async (
-  params: IUserFetc
-): Promise<IRes<IResLogin>> => {
-  const res: AxiosResponse<IRes<IResLogin>> = await Http.post(
-    "/user/login",
-    params
-  );
-  return res.data;
-};
-/**
  * CSR 에서 로그아웃 처리를 위한 액션 함수
  */
-export const fetchLogout: AsyncThunk<
-  IRes<string>,
-  void,
-  { state: RootState }
-> = createAsyncThunk<IRes<string>>(`${name}/fetchLogout`, async () => {
-  return logout();
-});
-/**
- * SSR 일때 통신하기 위한 함수
- * @returns
- */
-export const logout: () => Promise<IRes<string>> = async (): Promise<
-  IRes<string>
-> => {
-  const res: AxiosResponse<IRes<string>> = await Http.post("/user/logout");
-  return res.data;
-};
+export const fetchLogout = createAppThunk<string>(
+  `${name}/fetchLogout`,
+  async (_, thunkApi) => {
+    const res = await Http.post<IRes<string>>("/user/logout");
+    thunkApi.dispatch(logoutAction);
+    return res.data;
+  }
+);
 
 // data 를 관리하는 reducer 설정
 const userSlice = createSlice({
@@ -106,51 +59,6 @@ const userSlice = createSlice({
     logoutAction() {
       return { reqId: "", id: "" };
     },
-  },
-  extraReducers: builder => {
-    // pending 액션을 통해 상태를 변화 시키기 위한 등록
-    // 서버 통신하기전 호출되는 함수
-    builder.addCase(fetchLogin.pending, (state: IUser, action) => {
-      return { ...state, reqId: action.meta.requestId };
-    });
-    // fulfilled 액션을 통해 상태를 변화 시키기 위한 등록
-    // 서버 통신후 성공 하면 호출되는 함수
-    builder.addCase(fetchLogin.fulfilled, (state: IUser, { payload }) => {
-      if (payload.result) {
-        const expires = new Date();
-        expires.setDate(Date.now() + 1000 * 60 * 60 * 24);
-        // localStorage.setItem("token", payload.data);
-        const loginpayload: IResLogin = payload.data as IResLogin;
-        sessionStorage.setItem(config.token.name, loginpayload.token);
-        sessionStorage.setItem("key", decrypt(loginpayload.key));
-        Http.defaults.headers.common[config.token.header] =
-          sessionStorage.getItem(config.token.name) as string;
-        // Http.defaults.headers["localStorage"] = localStorage.getItem("token");
-      } else {
-        console.log(payload.data);
-      }
-    });
-    // rejected 액션을 통해 상태를 변화 시키기 위한 등록
-    // 서버 통신이 실패 했을때 호출되는 함수
-    builder.addCase(fetchLogin.rejected, (state: IUser, action) => {
-      console.log("실패", state, action);
-    });
-    /** logout */
-    builder.addCase(fetchLogout.pending, (state: IUser, action) => {
-      return { ...state, reqId: action.meta.requestId };
-    });
-    builder.addCase(fetchLogout.fulfilled, (state: IUser, { payload }) => {
-      if (payload.result) {
-        localStorage.removeItem(config.token.name);
-        sessionStorage.removeItem(config.token.name);
-        delete Http.defaults.headers.common[config.token.header];
-        // delete Http.defaults.headers["localStorage"];
-        // delete Http.defaults.headers["cookies"];
-      }
-    });
-    builder.addCase(fetchLogout.rejected, (state: IUser, action) => {
-      console.log("실패", state, action);
-    });
   },
 });
 
