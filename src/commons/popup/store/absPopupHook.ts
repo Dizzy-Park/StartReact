@@ -2,16 +2,15 @@ import { useDispatch } from "react-redux";
 import { AbsPopupType } from "../AbsPopupType";
 import { rdxPopupClose, rdxPopupOpen } from "./popupR";
 import {
-  AlertParam,
   ButtonState,
-  ConfirmParam,
-  IButton,
-  IPopupDo,
-  PopupCallBackParam,
+  type AlertParam,
+  type ConfirmParam,
+  type IButton,
+  type IPopupDo,
+  type PopupCallBackParam,
 } from "./absPopupVo";
-import { ICommonsStore } from "../..";
+import type { ICommonsStore } from "../..";
 import { useSelectorEq } from "../../store/common";
-import React from "react";
 
 /**
  * @param type {@link AbsPopupType} 팝업 타입
@@ -27,8 +26,12 @@ export function useClosePopup(type: AbsPopupType | string) {
   const close = async (state?: ButtonState, params?: any): Promise<void> => {
     if (callBack && typeof callBack === "function") {
       const st = state ? state : ButtonState.NO;
-      if (returnData || params !== undefined) {
-        callBack({ ...returnData, ...params, state: st });
+      if (returnData || (params !== undefined && !(params instanceof Event))) {
+        if (st === ButtonState.NO) {
+          callBack({ ...params, state: st });
+        } else {
+          callBack({ ...returnData, ...params, state: st });
+        }
       } else {
         callBack(st);
       }
@@ -46,7 +49,7 @@ export function usePopupData<
   T,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   K extends IButton = any,
-  U extends PopupCallBackParam = ButtonState
+  U extends PopupCallBackParam = ButtonState,
 >(type: AbsPopupType | string) {
   const { popupDo } = useSelectorEq((state: ICommonsStore) => ({
     popupDo: state.popups.popup[type] ? state.popups.popup[type] : undefined,
@@ -63,15 +66,18 @@ export function usePopupData<
  * @returns `maxHeight` 최대 높이값
  */
 export function useAbsPopupData(type: AbsPopupType | string) {
-  const { width, ButtonWrapper, maxHeight, device } = useSelectorEq(
+  const { width, ButtonWrapper, maxHeight, isDevice } = useSelectorEq(
     (state: ICommonsStore) => ({
       width: state.popups.popup[type].width,
       ButtonWrapper: state.popups.popup[type].buttonWrapper,
       maxHeight: state.popups.popup[type].maxHeight,
-      device: state.popups.popup[type].device,
+      isDevice:
+        state.popups.popup[type].isDevice === undefined
+          ? true
+          : state.popups.popup[type].isDevice!,
     })
   );
-  return { width, type, ButtonWrapper, maxHeight, device };
+  return { width, type, ButtonWrapper, maxHeight, isDevice };
 }
 
 /**
@@ -131,7 +137,8 @@ export default usePopup;
  */
 export function useAbsAlert<T>(
   buttonComponent?: React.FC<T>,
-  width?: string | number
+  width?: string | number,
+  isDevice?: boolean
 ) {
   const dispatch = useDispatch();
   const alert = (params: AlertParam, callBack?: () => void) => {
@@ -152,6 +159,7 @@ export function useAbsAlert<T>(
             style: { text: "확인", state: ButtonState.OK },
           },
         ],
+        isDevice: isDevice,
         callBack: callBack,
       } as IPopupDo<string>)
     );
@@ -165,20 +173,21 @@ export function useAbsAlert<T>(
  */
 export function useAbsConfirm(
   buttonComponent?: React.FC,
-  width?: string | number
+  width?: string | number,
+  isDevice?: boolean
 ) {
   const dispatch = useDispatch();
   const confirm = async (
     params: ConfirmParam,
     callBack?: (bo: boolean) => void
   ) => {
-    const message = typeof params === "string" ? params : params.message;
+    // const message = typeof params === "string" ? params : params.message;
     const title = typeof params === "string" ? undefined : params.title;
     dispatch(
       rdxPopupOpen({
         type: AbsPopupType.CONFIRM,
         title: title,
-        data: message,
+        data: params,
         width: width,
         isClose: false,
         buttonComponent: buttonComponent,
@@ -186,6 +195,7 @@ export function useAbsConfirm(
           { text: "취소", state: ButtonState.NO },
           { text: "확인", state: ButtonState.OK },
         ],
+        isDevice: isDevice,
         callBack: callBack,
       } as IPopupDo<string>)
     );

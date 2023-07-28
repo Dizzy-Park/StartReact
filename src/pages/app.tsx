@@ -1,4 +1,4 @@
-import { DefaultTheme, ThemeProvider } from "styled-components";
+import { ThemeProvider } from "styled-components";
 import React, { lazy, Suspense, useState } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Http from "../store/net/Http";
@@ -7,9 +7,9 @@ import Index from "./index";
 import { config } from "../config/config";
 import { GlobalStyle } from "styles/globalStyle";
 import { lightTheme } from "styles/theme";
-import LoadingView from "commons/loading/LoadingView";
 import Popup from "commons/popup/PopupController";
-import Layer from "commons/layers/LayerController";
+import LoadingView from "commons/loading/LoadingView";
+import LayerController from "commons/layers/LayerController";
 
 const User = lazy(() => import("./user"));
 
@@ -42,7 +42,7 @@ const RootApp: React.FC = () => {
       ) as string;
     }
   }
-  const [theme] = useState<DefaultTheme>(lightTheme);
+  const [theme] = useState(lightTheme);
   /**
    * styled-components 와 @material-ui/core 에 하나의 테마를 적용하기 위한 기본 코드
    * 모든 페이지는 이 파일을 통해서 구성된다
@@ -54,7 +54,7 @@ const RootApp: React.FC = () => {
         <Popup />
         {/* styled-components 에 테마를 적용하기 위한 코드 */}
         <LoadingView />
-        <Layer />
+        <LayerController />
         {/* 기본 레이아웃을 잡기위한 컴포넌트 */}
         <Suspense fallback={"로딩중입니다"}>
           <Routes>

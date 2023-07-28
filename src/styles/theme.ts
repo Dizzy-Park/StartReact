@@ -1,5 +1,3 @@
-import baseStyled, { ThemedStyledInterface } from "styled-components";
-
 /**
  * 테마 설정을위한 생성
  */
@@ -144,4 +142,4 @@ export const darkTheme: Theme = {
  * 테마 타입 설정
  */
 export type Theme = typeof lightTheme;
-export const styled = baseStyled as ThemedStyledInterface<Theme>;
+// export const styled = baseStyled as ThemedStyledInterface<Theme>;

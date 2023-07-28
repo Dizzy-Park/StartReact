@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { AbsPopupType } from "../AbsPopupType";
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import type { AbsPopupType } from "../AbsPopupType";
 import type { IPopupDo, IPopupState } from "./absPopupVo";
 
 const name = "popup";
@@ -51,7 +51,45 @@ const popupSlice = createSlice({
         ...action.payload.value,
       };
     },
-    rdxRemoveReturnData(
+    rdxChangePopupData(
+      state: IPopupState,
+      action: PayloadAction<{
+        type: AbsPopupType | string;
+        key: string;
+        index?: string | number;
+        fild?: string;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        value: any;
+      }>
+    ) {
+      if (state.returnData[action.payload.type] === undefined) {
+        state.returnData[action.payload.type] = {};
+      }
+      if (action.payload.index !== undefined) {
+        if (action.payload.fild) {
+          state.returnData[action.payload.type][action.payload.key][
+            action.payload.index
+          ][action.payload.fild] = action.payload.value;
+        } else {
+          state.returnData[action.payload.type][action.payload.key][
+            action.payload.index
+          ] = action.payload.value;
+        }
+      } else {
+        if (
+          state.returnData[action.payload.type][action.payload.key] instanceof
+          Array
+        ) {
+          state.returnData[action.payload.type][action.payload.key].push(
+            action.payload.value
+          );
+        } else {
+          state.returnData[action.payload.type][action.payload.key] =
+            action.payload.value;
+        }
+      }
+    },
+    rdxRemoveOneDepsReturnData(
       state: IPopupState,
       action: PayloadAction<{
         type: AbsPopupType | string;
@@ -62,11 +100,46 @@ const popupSlice = createSlice({
     ) {
       const originalData =
         state.returnData[action.payload.type][action.payload.key];
+
       const findIndex = originalData.findIndex(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (item: any) => item.id === action.payload.value
+        (item: any) => item === action.payload.value
       );
-      originalData.splice(findIndex, 1);
+
+      if (findIndex > -1) {
+        originalData.splice(findIndex, 1);
+      }
+    },
+    rdxRemoveReturnData(
+      state: IPopupState,
+      action: PayloadAction<{
+        type: AbsPopupType | string;
+        key: string;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        value: any;
+        deleteType?: string;
+      }>
+    ) {
+      const originalData =
+        state.returnData[action.payload.type][action.payload.key];
+
+      let findIndex;
+      if (action.payload.deleteType) {
+        findIndex = originalData.findIndex(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (item: any) =>
+            item[`${action.payload.deleteType}`] === action.payload.value
+        );
+      } else {
+        findIndex = originalData.findIndex(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (item: any) => item.id === action.payload.value
+        );
+      }
+
+      if (findIndex > -1) {
+        originalData.splice(findIndex, 1);
+      }
     },
     rdxDisabled(
       state: IPopupState,
@@ -95,7 +168,9 @@ export const {
   rdxPopupClose,
   rdxSetPopupData,
   rdxDisabled,
+  rdxRemoveOneDepsReturnData,
   rdxRemoveReturnData,
   rdxPopupReset,
+  rdxChangePopupData,
 } = popupSlice.actions;
 export default popupSlice.reducer;

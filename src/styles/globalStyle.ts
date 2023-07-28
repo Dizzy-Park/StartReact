@@ -1,7 +1,6 @@
 import { createGlobalStyle } from "styled-components";
-import { Theme } from "./theme";
 
-export const GlobalStyle = createGlobalStyle<{ theme: Theme }>`
+export const GlobalStyle = createGlobalStyle`
 :root {
   --bodyBackground: ${props => props.theme.colors.bodyBackground};
   --primary: ${props => props.theme.colors.primary};

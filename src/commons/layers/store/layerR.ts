@@ -1,7 +1,7 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { IRes } from "../../Http";
-import { createThunk } from "../../store/common";
-import { ILayerDo } from "./layerVo";
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import type { AbsIRes } from "commons/Http";
+import { absCreateThunk } from "../../store/common";
+import type { ILayerDo } from "./layerVo";
 
 const name = "layers";
 
@@ -15,17 +15,18 @@ export interface ILayerState {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const rdxLayers = createThunk<any, any, ILayerDo<any>>(
+export const rdxLayers = absCreateThunk<any, AbsIRes<any>, any, ILayerDo<any>>(
   `${name}/rdxLayers`,
   async (params, thunkApi) => {
     thunkApi.dispatch(rdxLayerOpen(params));
     return new Promise(res => {
-      const unsubscribe = thunkApi.extra.store().subscribe(() => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const unsubscribe = (thunkApi.extra as any).store().subscribe(() => {
         const { layers } = thunkApi.getState();
         if (layers.returnData || layers.isLayer === false) {
           unsubscribe();
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          res({ code: 200, content: layers.returnData } as IRes<any>);
+          res({ code: 200, content: layers.returnData } as AbsIRes<any>);
         }
       });
     });

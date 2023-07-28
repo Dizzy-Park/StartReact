@@ -1,9 +1,9 @@
 import React, {
   useState,
-  ChangeEventHandler,
-  RefObject,
-  KeyboardEventHandler,
-  FocusEventHandler,
+  type ChangeEventHandler,
+  type RefObject,
+  type KeyboardEventHandler,
+  type FocusEventHandler,
 } from "react";
 
 /**
@@ -169,12 +169,9 @@ export function useInputRef<T extends HTMLElement, Z extends HTMLElement>({
   };
   if (id !== "" && onFocusOut) {
     const onBlur: FocusEventHandler<HTMLInputElement> = async (
-      e: React.ChangeEvent<HTMLInputElement>
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      _e: React.ChangeEvent<HTMLInputElement>
     ): Promise<void> => {
-      const {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        target: { value },
-      } = e;
       onFocusOut(id);
     };
     return {

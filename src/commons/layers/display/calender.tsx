@@ -108,11 +108,11 @@ const CalenderDay = styled.li<{
     switch (props.color) {
       case ColorType.RED:
         return css`
-          color: #eb4e28;
+          color: var(--font-red);
         `;
       case ColorType.BLUE:
         return css`
-          color: #0d7cff;
+          color: var(--font-blue);
         `;
       case ColorType.GRAY:
         return css`

@@ -1,17 +1,17 @@
 import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
 import { useSelectorEq } from "../store/common";
-import { IUiAction, rdxSetUi, rdxTotalSetUi, IUiActionValue } from "./uiR";
+import { rdxSetUi, rdxTotalSetUi } from "./uiR";
+import { UiType, type IUiActionValue, type IUiAction } from "./uiVo";
+import React, { useEffect } from "react";
+import { useAbsAlert } from "../popup/store/absPopupHook";
+import type { ICommonsStore } from "..";
 import {
   addInit,
   privateUseInitCallback,
   privateUseRemoveCallback,
   removeEnd,
-  UiType,
-} from "./uiVo";
-import React, { useEffect } from "react";
-import { useAbsAlert } from "../popup/store/absPopupHook";
-import { ICommonsStore } from "..";
+} from "./uiCore";
 
 /**
  * @param EMAIL email
@@ -71,7 +71,7 @@ export const useValid = <T>(
   init?: T
 ) => {
   const { validValue } = useSelectorEq((state: ICommonsStore) => ({
-    validValue: state.ui.valid[id],
+    validValue: state.ui.valid !== undefined ? state.ui.valid[id] : undefined,
   }));
   const initCallback = privateUseInitCallback();
   const removeCallback = privateUseRemoveCallback();
@@ -82,7 +82,7 @@ export const useValid = <T>(
       addInit(
         {
           ...action,
-          valid: valid as IValid<IUiActionValue>,
+          valid: valid as unknown as IValid<IUiActionValue>,
         },
         initCallback
       );
@@ -114,7 +114,7 @@ export const changeValid = () => {
     let dbo;
     switch (typeof value) {
       case "string":
-        dbo = value.length > 0 ? bo : true;
+        dbo = value.trim().length > 0 ? bo : true;
         break;
       case "boolean":
         dbo = bo;
@@ -144,14 +144,15 @@ export const useValidChange = <T>(
   setValue?: (value: T, keyName?: string) => void
 ) => {
   const { valid } = useSelectorEq((state: ICommonsStore) => ({
-    valid: state.ui.validP[id],
+    valid: state.ui.validP !== undefined ? state.ui.validP[id] : undefined,
   }));
   const dispatch = useDispatch();
   const change = changeValid();
   const changeValue = (value: T, keyName?: string) => {
     if (valid !== undefined) {
       // console.log(dbo, bo);
-      const action = change(id, valid, value as IUiActionValue);
+      const uiValue = typeof value === "string" ? value.trim() : value;
+      const action = change(id, valid, uiValue as IUiActionValue);
       dispatch(rdxSetUi(action));
     }
     if (setValue) {
@@ -168,7 +169,7 @@ export const useValidChange = <T>(
  */
 export const useValidValue = (id: string) => {
   const { validValue } = useSelectorEq((state: ICommonsStore) => ({
-    validValue: state.ui.valid[id],
+    validValue: state.ui.valid !== undefined ? state.ui.valid[id] : undefined,
   }));
   return { validValue: validValue ? validValue.display : true };
 };
@@ -180,7 +181,7 @@ export const useValidValue = (id: string) => {
  */
 export const useValidResult = (id: string) => {
   const { validValue } = useSelectorEq((state: ICommonsStore) => ({
-    validValue: state.ui.valid[id],
+    validValue: state.ui.valid !== undefined ? state.ui.valid[id] : undefined,
   }));
   return { validValue: validValue ? validValue.value : false };
 };
@@ -198,21 +199,24 @@ export const useTotalValid = (
   const { valid, validP } = useSelector((state: ICommonsStore) => state.ui);
   const { alert } = useAbsAlert(buttonComponent, width);
   const isTotalDisabled = () => {
-    const keys = Object.keys(valid);
-    keys.sort();
-    const fkey = keys.find(key => valid[key].value === false);
-    const bo = fkey !== undefined;
-    if (fkey) {
-      const message = validP[fkey]?.message;
-      if (message) {
-        alert(message);
-        return true;
-      } else {
-        // 메시지 입력 안했을시 통합으로 표현하기 위해 넣어둠
-        // alert("모든 항목을 입력하셔야 합니다.");
+    if (valid !== undefined && validP !== undefined) {
+      const keys = Object.keys(valid);
+      keys.sort();
+      const fkey = keys.find(key => valid[key].value === false);
+      const bo = fkey !== undefined;
+      if (fkey) {
+        const message = validP[fkey]?.message;
+        if (message) {
+          alert(message);
+          return true;
+        } else {
+          // 메시지 입력 안했을시 통합으로 표현하기 위해 넣어둠
+          // alert("모든 항목을 입력하셔야 합니다.");
+        }
       }
+      return bo;
     }
-    return bo;
+    return false;
   };
   return { valid, isTotalDisabled };
 };
@@ -266,11 +270,11 @@ const checkNumRange = (value: string, min?: number, max?: number) => {
 const checkLength = (value: string, min?: number, max?: number) => {
   if (value !== undefined) {
     if (min && max) {
-      return max >= value.length && value.length >= min;
+      return max >= value.trim().length && value.trim().length >= min;
     } else if (min) {
-      return value.length >= min;
+      return value.trim().length >= min;
     } else if (max) {
-      return max >= value.length;
+      return max >= value.trim().length;
     } else {
       return true;
     }
@@ -303,8 +307,7 @@ const checkEmoji = (value: string, emoji?: boolean) => {
 };
 
 const checkEmail = (value: string) => {
-  const emailRule =
-    /^[0-9a-zA-Z]([-_.]?[0-9a-zA-Z])*@[0-9a-zA-Z]([-_.]?[0-9a-zA-Z])*.[a-zA-Z]{2,3}$/i; //이메일 정규식
+  const emailRule = /^[a-z0-9]+@[a-z]+\.[a-z]{2,3}$/; //이메일 정규식
   return emailRule.test(value);
 };
 
@@ -326,7 +329,7 @@ const checkPhone = (value: string) => {
 };
 
 const checkNumber = (value: string) => {
-  const numberRule = /[0-9]/;
+  const numberRule = /^[0-9]*$/;
   return numberRule.test(value);
 };
 
@@ -364,8 +367,10 @@ export const validInput = <T>(valid: IValid<T>, value?: T) => {
       break;
     case ValidType.TEXT:
     default:
-      check.push(checkLength(String(value), valid.minLength, valid.maxLength));
-      check.push(checkEmoji(String(value), valid.emoji));
+      check.push(
+        checkLength(String(value).trim(), valid.minLength, valid.maxLength)
+      );
+      check.push(checkEmoji(String(value).trim(), valid.emoji));
       break;
   }
   if (valid.useValid) {

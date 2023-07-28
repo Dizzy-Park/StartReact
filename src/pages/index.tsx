@@ -2,7 +2,7 @@ import React from "react";
 
 import useInput from "../store/hook/useInput";
 import useUser from "../store/modules/user/userHook";
-import { IUserFetc } from "../store/modules/user/userR";
+import { type IUserFetc } from "../store/modules/user/userR";
 import { useRef } from "react";
 import styled from "styled-components";
 import Button from "components/atoms/Button";

@@ -1,34 +1,35 @@
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { ICommonsStore } from "..";
+import type { ICommonsStore } from "..";
 import { useSelectorEq } from "../store/common";
+import { rdxSetUi, rdxTotalSetUi, rdxTotalRemoveUi } from "./uiR";
 import {
-  IUiAction,
-  rdxSetUi,
-  rdxTotalSetUi,
-  IUiActionValue,
-  FileType,
-} from "./uiR";
-import {
-  addInit,
-  addUi,
-  getInit,
-  getUi,
-  ICheckBox,
-  privateUseInitCallback,
-  privateUseRemoveCallback,
-  removeEnd,
-  resteUi,
-  UiCenter,
-  UiType,
-} from "./uiVo";
-import {
-  IValid,
+  type IValid,
   changeValid,
   useValidChange,
   useValid,
   validInput,
 } from "./useValid";
+import {
+  UiCenter,
+  type IUiActionValue,
+  UiType,
+  type IUiAction,
+  type ICheckBox,
+  type FileType,
+} from "./uiVo";
+import {
+  addInit,
+  addUi,
+  getInit,
+  getRemove,
+  getUi,
+  privateUseInitCallback,
+  privateUseRemoveCallback,
+  removeEnd,
+  removeUi,
+  resteUi,
+} from "./uiCore";
 
 /**
  * ui 컴포넌트에 값을 일률 적으로 전달하기 위한 hook
@@ -46,14 +47,26 @@ export const useUiAction = (namespace?: string) => {
     privateAddUi(namespace, type, key, value);
     privateAddValid(namespace, key as string, value, validP);
   };
-  const commit = () => {
-    const uiArr = getUi(namespace);
-    if (uiArr && uiArr.length > 0) {
-      dispatch(rdxTotalSetUi(uiArr));
-      resteUi(namespace);
+  const remove = <T>(type: UiType, key: string | T, value: IUiActionValue) => {
+    privateRemoveUi(namespace, type, key, value);
+    privateRemoveValid(namespace, key as string);
+  };
+  const commit = (remove?: boolean) => {
+    if (remove) {
+      const uiArr = getRemove();
+      if (uiArr && uiArr.length > 0) {
+        dispatch(rdxTotalRemoveUi(uiArr));
+        resteUi(UiCenter.REMOVE);
+      }
+    } else {
+      const uiArr = getUi(namespace);
+      if (uiArr && uiArr.length > 0) {
+        dispatch(rdxTotalSetUi(uiArr));
+        resteUi(namespace);
+      }
     }
   };
-  return { add, commit };
+  return { add, commit, remove };
 };
 
 /**
@@ -73,6 +86,10 @@ export const uiAction = (thunkApi: any, namespace?: string) => {
     privateAddUi(namespace, type, key, value);
     privateAddValid(namespace, key as string, value, validP);
   };
+  const remove = <T>(type: UiType, key: string | T, value: IUiActionValue) => {
+    privateRemoveUi(namespace, type, key, value);
+    privateRemoveValid(namespace, key as string);
+  };
   const commit = () => {
     const uiArr = getUi(namespace);
     if (uiArr && uiArr.length > 0) {
@@ -80,7 +97,7 @@ export const uiAction = (thunkApi: any, namespace?: string) => {
       resteUi(namespace);
     }
   };
-  return { add, commit };
+  return { add, commit, remove };
 };
 
 /**
@@ -106,18 +123,39 @@ const privateAddUi = <T>(
 /**
  * @deprecated 외부 사용금지
  */
+const privateRemoveUi = <T>(
+  namespace: string | undefined,
+  type: UiType,
+  key: string | T,
+  value: IUiActionValue
+) => {
+  removeUi(
+    {
+      type: type,
+      key: key as string,
+      value: value,
+    },
+    namespace
+  );
+};
+
+/**
+ * @deprecated 외부 사용금지
+ */
 const privateAddValid = (
   namespace: string | undefined,
   key: string,
   value: IUiActionValue,
-  validP: {
+  validP?: {
     [key: string]: IValid<IUiActionValue>;
   }
 ) => {
   const valid = changeValid();
   const _namespace = getInit().length === 0 ? namespace : UiCenter.INIT;
   const backVp = getUi(UiCenter.BACK).filter(k => k.key === key);
-  let vp: IValid<IUiActionValue> | undefined = validP[key as string];
+  let vp: IValid<IUiActionValue> | undefined = validP
+    ? validP[key as string]
+    : undefined;
   if (vp === undefined) {
     if (backVp.length !== 0) {
       vp = backVp[0].valid;
@@ -131,6 +169,13 @@ const privateAddValid = (
       addUi(v, _namespace);
     }
   }
+};
+
+/**
+ * @deprecated 외부 사용금지
+ */
+const privateRemoveValid = (namespace: string | undefined, key: string) => {
+  removeUi({ type: UiType.VALID, key: key } as IUiAction, namespace);
 };
 
 /**
@@ -161,7 +206,7 @@ export const useReset = () => {
   ) => {
     const vArr: IUiAction[] = [];
     const temp = uiValue.map(item => {
-      const v = uiValid[item.key];
+      const v = uiValid ? uiValid[item.key] : undefined;
       if (v) {
         const bo = validInput(v, item.value);
         vArr.push({
@@ -229,13 +274,17 @@ export const useInputText = (
     id,
     valid,
     (value?: string) => {
-      add(UiType.INPUT_TEXT, id, value);
+      add(
+        UiType.INPUT_TEXT,
+        id,
+        typeof value === "string" ? value.trim() : value
+      );
       commit();
       if (callBack) {
-        callBack(value);
+        callBack(typeof value === "string" ? value.trim() : value);
       }
     },
-    initValue
+    typeof initValue === "string" ? initValue.trim() : initValue
   );
   return { inputTextValue, changeValue };
 };
@@ -247,7 +296,9 @@ export const useInputText = (
  */
 export const useInputValue = <T>(id: string | T) => {
   const { inputTextValue } = useSelectorEq((state: ICommonsStore) => ({
-    inputTextValue: state.ui.inputText[id as string],
+    inputTextValue: state.ui.inputText
+      ? state.ui.inputText[id as string]
+      : undefined,
   }));
   return { inputTextValue };
 };
@@ -290,7 +341,7 @@ export const useSelectBox = (
   callBack?: (value?: string | number, keyName?: string) => void
 ) => {
   const { selectValue } = useSelectorEq((state: ICommonsStore) => ({
-    selectValue: state.ui.selectbox[id],
+    selectValue: state.ui.selectbox ? state.ui.selectbox[id] : undefined,
   }));
   const { add, commit } = useUiAction();
   const initValue =
@@ -334,7 +385,9 @@ export const useSetSelectBox = (id: string) => {
 
 export const useSelectBoxValue = <T>(id: string | T) => {
   const { selectValue } = useSelectorEq((state: ICommonsStore) => ({
-    selectValue: state.ui.selectbox[id as string],
+    selectValue: state.ui.selectbox
+      ? state.ui.selectbox[id as string]
+      : undefined,
   }));
   return { selectValue };
 };
@@ -347,7 +400,7 @@ export const useCheckBox = (
   change?: (value?: boolean) => void
 ) => {
   const { checkValue, validP } = useSelectorEq((state: ICommonsStore) => ({
-    checkValue: state.ui.checkBox[id],
+    checkValue: state.ui.checkBox ? state.ui.checkBox[id] : undefined,
     validP: state.ui.validP,
   }));
   const dispatch = useDispatch();
@@ -392,7 +445,7 @@ export const useCheckBox = (
           });
           if (ikey !== "isAll") {
             const vkey = id + "_" + ikey;
-            if (validP[vkey]) {
+            if (validP !== undefined && validP[vkey]) {
               action.push(changeValidAction(vkey, validP[vkey], data!));
             }
           }
@@ -427,7 +480,10 @@ export const useSetCheckbox = (id: string, key: string) => {
 
 export const useCheckboxObjValue = (id: string) => {
   const { checkboxObjValue } = useSelectorEq((state: ICommonsStore) => ({
-    checkboxObjValue: state.ui.checkBox[id] ? state.ui.checkBox[id] : null,
+    checkboxObjValue:
+      state.ui.checkBox !== undefined && state.ui.checkBox[id]
+        ? state.ui.checkBox[id]
+        : null,
   }));
 
   return { checkboxObjValue };
@@ -435,9 +491,10 @@ export const useCheckboxObjValue = (id: string) => {
 
 export const useCheckboxGroupValue = (id: string) => {
   const { checkboxGroupValue } = useSelectorEq((state: ICommonsStore) => ({
-    checkboxGroupValue: state.ui.checkBoxGoup[id]
-      ? state.ui.checkBoxGoup[id]
-      : null,
+    checkboxGroupValue:
+      state.ui.checkBoxGoup !== undefined && state.ui.checkBoxGoup[id]
+        ? state.ui.checkBoxGoup[id]
+        : null,
   }));
 
   return { checkboxGroupValue };
@@ -445,7 +502,10 @@ export const useCheckboxGroupValue = (id: string) => {
 
 export const useCheckboxValue = (id: string, key: string) => {
   const { checkboxValue } = useSelectorEq((state: ICommonsStore) => ({
-    checkboxValue: state.ui.checkBox[id] ? state.ui.checkBox[id][key] : false,
+    checkboxValue:
+      state.ui.checkBox !== undefined && state.ui.checkBox[id]
+        ? state.ui.checkBox[id][key]
+        : false,
   }));
 
   return { checkboxValue };
@@ -465,7 +525,10 @@ export const useCheckBoxGroup = (
   init?: string[]
 ) => {
   const { checkValue } = useSelectorEq((state: ICommonsStore) => ({
-    checkValue: state.ui.checkBoxGoup[id],
+    checkValue:
+      state.ui.checkBoxGoup !== undefined
+        ? state.ui.checkBoxGoup[id]
+        : undefined,
   }));
   const dispatch = useDispatch();
   useInitEffect(
@@ -474,7 +537,11 @@ export const useCheckBoxGroup = (
       key: id,
       isAll: true,
       value:
-        init !== undefined ? init : list?.filter(i => !i.isAll).map(i => i.id),
+        init !== undefined
+          ? init
+          : checkValue?.value
+          ? checkValue.value
+          : list?.filter(i => !i.isAll).map(i => i.id),
     },
     { type: UiType.CHECK_BOX_GROUP, key: id }
   );
@@ -541,7 +608,8 @@ export const useRadio = (
   callBack?: (value?: string | number) => void
 ) => {
   const { checkValue } = useSelectorEq((state: ICommonsStore) => ({
-    checkValue: state.ui.radioBox[id],
+    checkValue:
+      state.ui.radioBox !== undefined ? state.ui.radioBox[id] : undefined,
   }));
   const dispatch = useDispatch();
   useInitEffect({
@@ -560,7 +628,7 @@ export const useRadio = (
 
 export const useRadioValue = (id: string) => {
   const { checkValue } = useSelectorEq((state: ICommonsStore) => ({
-    checkValue: state.ui.radioBox[id],
+    checkValue: state.ui.radioBox ? state.ui.radioBox[id] : undefined,
   }));
   return { checkValue };
 };
@@ -612,7 +680,7 @@ export const useButton = (
 
 export const useButtonValue = (id: string) => {
   const { buttonValue } = useSelectorEq((state: ICommonsStore) => ({
-    buttonValue: state.ui.button[id],
+    buttonValue: state.ui.button ? state.ui.button[id] : undefined,
   }));
   return { buttonValue };
 };
@@ -626,7 +694,11 @@ export const useSetButton = (id: string) => {
 };
 
 /** InputFile 리덕스 자동 저장 처리 */
-export const useInputFile = (id: string, init?: string) => {
+export const useInputFile = (
+  id: string,
+  valid?: IValid<FileType | FileType[]>,
+  init?: string
+) => {
   const { inputFileValue } = useInputFileValue(id);
   const dispatch = useDispatch();
   const initValue = init
@@ -641,8 +713,8 @@ export const useInputFile = (id: string, init?: string) => {
   });
   const { changeValue } = useValid(
     id,
-    undefined,
-    (value?: FileType) => {
+    valid,
+    (value?: FileType | FileType[]) => {
       dispatch(rdxSetUi({ type: UiType.INPUT_FILE, key: id, value: value }));
     },
     initValue
@@ -653,9 +725,10 @@ export const useInputFile = (id: string, init?: string) => {
 /** 리덕스 정보 접근 */
 export const useInputFileValue = (id: string) => {
   const { inputFileValue } = useSelectorEq((state: ICommonsStore) => ({
-    inputFileValue: state.ui.inputFile[id as string]
-      ? state.ui.inputFile[id as string]
-      : { filename: "" },
+    inputFileValue:
+      state.ui.inputFile !== undefined && state.ui.inputFile[id as string]
+        ? state.ui.inputFile[id as string]
+        : { filename: "" },
   }));
   return { inputFileValue };
 };
@@ -663,22 +736,40 @@ export const useInputFileValue = (id: string) => {
 /** 미리보기 이미지 경로 필요할때 사용 */
 export const useInputFilePrevImage = (id: string) => {
   const { src } = useSelectorEq((state: ICommonsStore) => ({
-    src: state.ui.inputFile[id as string]
-      ? state.ui.inputFile[id as string].imageData
-        ? state.ui.inputFile[id as string].imageData
-        : state.ui.inputFile[id as string].filename
-      : "",
+    src:
+      state.ui.inputFile !== undefined &&
+      state.ui.inputFile[id as string] &&
+      !(state.ui.inputFile[id as string] instanceof Array)
+        ? (state.ui.inputFile[id as string] as FileType).imageData
+          ? (state.ui.inputFile[id as string] as FileType).imageData
+          : (state.ui.inputFile[id as string] as FileType).filename
+        : "",
+  }));
+  return src;
+};
+
+export const useInputFileReImage = (id: string) => {
+  const { src } = useSelectorEq((state: ICommonsStore) => ({
+    src:
+      state.ui.inputFile !== undefined &&
+      state.ui.inputFile[id as string] &&
+      !(state.ui.inputFile[id as string] instanceof Array) &&
+      (state.ui.inputFile[id as string] as FileType).resrc
+        ? (state.ui.inputFile[id as string] as FileType).resrc
+        : "",
   }));
   return src;
 };
 
 export const useInputFilePrevFile = (id: string) => {
   const { src } = useSelectorEq((state: ICommonsStore) => ({
-    src: state.ui.inputFile[id as string]
-      ? state.ui.inputFile[id as string].file
-        ? state.ui.inputFile[id as string].file
-        : undefined
-      : undefined,
+    src:
+      state.ui.inputFile !== undefined &&
+      state.ui.inputFile[id as string] &&
+      !(state.ui.inputFile[id as string] instanceof Array) &&
+      (state.ui.inputFile[id as string] as FileType).file
+        ? (state.ui.inputFile[id as string] as FileType).file
+        : undefined,
   }));
   return src;
 };
@@ -727,7 +818,10 @@ export const useCodeBook = <T>(
 
 export const useCodeBookValue = <T>(id: string) => {
   const { codebookValue } = useSelectorEq((state: ICommonsStore) => ({
-    codebookValue: state.ui.codebook[id as string],
+    codebookValue:
+      state.ui.codebook !== undefined
+        ? state.ui.codebook[id as string]
+        : undefined,
   }));
   return { codebookValue: codebookValue as Array<T> | undefined };
 };

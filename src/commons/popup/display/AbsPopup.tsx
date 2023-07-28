@@ -1,4 +1,4 @@
-import { ButtonType } from "components/ComponentsType";
+import SVG from "commons/styles/svgIcon";
 import React, { useEffect } from "react";
 import styled, { css } from "styled-components";
 import { AbsPopupType } from "../AbsPopupType";
@@ -6,19 +6,15 @@ import {
   useAbsPopupButton,
   useAbsPopupData,
   useAbsPopupTitle,
+  useClosePopup,
 } from "../store/absPopupHook";
-import { ButtonState, IButton } from "../store/absPopupVo";
+import { ButtonState, type IButton } from "../store/absPopupVo";
 
-const defaultColor = "#3E3E40";
-
-const CloseIcon = (color?: string): string => {
-  if (!color) color = defaultColor;
-  color =
-    color?.indexOf("#") === -1 ? color : color?.substring(1, color.length);
-  return `"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' fill='none' viewBox='0 0 15 15'%3E%3Cpath stroke='%23${color}' stroke-linecap='round' stroke-linejoin='round' d='M14.5.5l-14 14M.5.5l14 14'/%3E%3C/svg%3E"`;
-};
-
-const MsgWrapper = styled.div<{ width: number | string }>`
+const MsgWrapper = styled.div<{
+  width: number | string;
+  maxHeight?: number | string;
+  borderShape?: number | string;
+}>`
   display: flex;
   flex-direction: column;
   position: relative;
@@ -31,7 +27,30 @@ const MsgWrapper = styled.div<{ width: number | string }>`
     }
   }};
   min-height: 150px;
-  border-radius: 15px;
+  ${props => {
+    if (props.maxHeight) {
+      switch (typeof props.maxHeight) {
+        case "string":
+          return css`
+            max-height: ${props.maxHeight};
+          `;
+        case "number":
+          return css`
+            max-height: ${props.maxHeight + "px"};
+          `;
+      }
+    }
+  }}
+  border-radius: ${props => {
+    switch (typeof props.borderShape) {
+      case "number":
+        return props.borderShape + "px";
+      case "string":
+        return props.borderShape;
+      default:
+        return "15px";
+    }
+  }};
   box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.12);
   border: solid 1px rgba(0, 0, 0, 0.2);
   background-color: #ffffff;
@@ -44,8 +63,12 @@ const MsgWrapper = styled.div<{ width: number | string }>`
     padding: 0;
     margin: 0;
     border: 0;
-    background: url(${CloseIcon("323232")}) no-repeat center center;
+    background: url(${SVG.Closed("25282b")}) no-repeat center center;
+    background-size: 16px;
 
+    &:hover {
+      opacity: 0.6;
+    }
     &:before,
     &:after {
       margin: 0;
@@ -59,7 +82,7 @@ const headerStyle = () => {
     position: relative;
     min-height: 55px;
     padding: 15px 25px;
-    border-bottom: 1px solid ${props => props.theme.colors.borderGrey};
+    border-bottom: 1px solid ${props => props.theme.colors.borderPrimary};
     justify-content: center;
   `;
 };
@@ -68,36 +91,30 @@ const MsgHeader = styled.div`
   ${headerStyle};
 `;
 
-const bodyStyle = () => {
-  return css`
-    display: flex;
-    flex-direction: column;
-    word-break: keep-all;
+const bodyStyle = css<{ maxHeight?: number | string }>`
+  ${props =>
+    props.maxHeight !== undefined
+      ? css`
+          overflow-y: auto;
+        `
+      : ``}
 
-    strong {
-      display: block;
-      margin-bottom: 13px;
-    }
-  `;
-};
-const MobileMessagBody = css<{ device: boolean }>`
-  ${props => {
-    if (props.device) {
-      return css`
-        padding: 55px 40px 25px 40px;
-      `;
-    } else {
-      return css`
-        padding: 30px 20px 0 20px;
-      `;
-    }
-  }}
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  word-break: keep-all;
+
+  strong {
+    display: block;
+    margin-bottom: 13px;
+  }
 `;
 
 const MsgBody = styled.div<{
   type: AbsPopupType | string;
-  maxHeight?: number;
   device: boolean;
+  maxHeight?: number | string;
+  isButtonList?: boolean;
 }>`
   ${bodyStyle};
 
@@ -116,22 +133,19 @@ const MsgBody = styled.div<{
         `;
       case AbsPopupType.ALERT:
       case AbsPopupType.CONFIRM:
-        return css`
-          ${MobileMessagBody}
-        `;
+        if (props.device) {
+          return css`
+            padding: 55px 40px 25px 40px;
+          `;
+        } else {
+          return css`
+            padding: 30px 20px 0 20px;
+          `;
+        }
       default:
         return css`
-          padding: 20px;
+          padding: 16px;
         `;
-    }
-  }}
-
-  ${props => {
-    if (props.maxHeight) {
-      return css`
-        max-height: ${props.maxHeight + "px"};
-        overflow-y: auto;
-      `;
     }
   }}
 `;
@@ -176,17 +190,6 @@ const MsgFooter = styled.div<{ type: AbsPopupType | string; device: boolean }>`
 
 function AbsPopupTitle(props: { type: AbsPopupType | string }) {
   const { title, isClose, close } = useAbsPopupTitle(props.type);
-  const keyEvent = (e: KeyboardEvent) => {
-    if (e.key === "Escape") {
-      close(ButtonState.NO);
-    }
-  };
-  useEffect(() => {
-    window.addEventListener("keydown", keyEvent);
-    return () => {
-      window.removeEventListener("keydown", keyEvent);
-    };
-  });
   return (
     <>
       {title !== undefined ? (
@@ -220,7 +223,7 @@ function AbsPopupButtonList(props: {
             <Button
               key={idx}
               {...item}
-              btnType={item.state ? ButtonType.NORMAL : ButtonType.BORDER}
+              btnType={item.state ? "normal" : "border"}
               isRadius
               onClick={close.bind(null, item?.state, undefined)}
             />
@@ -243,28 +246,54 @@ function AbsPopupButtonList(props: {
 
 export interface IAbsPopupProps {
   type: AbsPopupType | string;
+  header?: React.ReactNode;
   children?: React.ReactNode;
+  borderShape?: string | number;
+  isButtonList?: boolean;
 }
 
 function AbsPopup(props: IAbsPopupProps) {
-  const { width, ButtonWrapper, maxHeight, device } = useAbsPopupData(
+  const { width, ButtonWrapper, maxHeight, isDevice } = useAbsPopupData(
     props.type
   );
+  const { close } = useClosePopup(props.type);
+  const keyEvent = (e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      close(ButtonState.NO);
+    }
+  };
+  useEffect(() => {
+    window.addEventListener("keydown", keyEvent);
+    return () => {
+      window.removeEventListener("keydown", keyEvent);
+    };
+  });
   return (
     <>
-      <MsgWrapper width={width ? width : 440}>
-        <AbsPopupTitle type={props.type} />
+      <MsgWrapper
+        width={width ? width : 440}
+        maxHeight={maxHeight ? maxHeight : undefined}
+        borderShape={props.borderShape}
+      >
+        {props.header ? props.header : <AbsPopupTitle type={props.type} />}
         <MsgBody
           type={props.type}
-          device={device === "pc"}
-          maxHeight={maxHeight ? maxHeight : undefined}
+          device={isDevice}
+          maxHeight={maxHeight}
+          isButtonList={props.isButtonList}
         >
           {props.children}
         </MsgBody>
-        {ButtonWrapper !== undefined ? (
-          <ButtonWrapper />
+        {props.isButtonList === true || props.isButtonList === undefined ? (
+          <>
+            {ButtonWrapper !== undefined ? (
+              <ButtonWrapper />
+            ) : (
+              <AbsPopupButtonList type={props.type} device={isDevice} />
+            )}
+          </>
         ) : (
-          <AbsPopupButtonList type={props.type} device={device === "pc"} />
+          <></>
         )}
       </MsgWrapper>
     </>

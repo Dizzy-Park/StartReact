@@ -1,5 +1,7 @@
+"use client";
+
 import React, { Suspense } from "react";
-import styled, { StyledComponent } from "styled-components";
+import styled, { type IStyledComponent } from "styled-components";
 import usePopup from "./store/absPopupHook";
 import { getPopup } from "./AbsPopupType";
 import Spinner from "../loading/display/Spinner";
@@ -10,6 +12,8 @@ export const PopupArea = styled.section`
   width: 100%;
   height: 100%;
   z-index: 9999;
+  top: 0;
+  left: 0;
 `;
 
 const PopupStyle = styled.div`
@@ -27,6 +31,7 @@ const PopupBack = styled.div`
   height: 100%;
   background-color: #000000;
   opacity: 0.4;
+  z-index: 1;
 `;
 
 const PopupContiner = styled.div`
@@ -34,6 +39,8 @@ const PopupContiner = styled.div`
   flex: 1 1 auto;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  height: 100%;
   z-index: 1;
 `;
 
@@ -49,7 +56,7 @@ interface IPopupProps {
    * `
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  area?: StyledComponent<"section", any>;
+  area?: IStyledComponent<"web", any>;
 }
 
 function Popup(props: IPopupProps) {

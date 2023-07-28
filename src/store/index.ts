@@ -1,14 +1,20 @@
-import { AnyAction, ReducersMapObject } from "@reduxjs/toolkit";
+import type { AnyAction, ReducersMapObject } from "@reduxjs/toolkit";
 import { combineReducers } from "redux";
-import user, { IUser } from "./modules/user/userR";
-import commons, { ICommonsStore } from "commons";
+import { type ICommonsStore } from "commons";
+import CommonsSlim from "commons/store/CommonsSlim";
+import user, { type IUser } from "./modules/user/userR";
 
 /**
  * state interface 설정
  */
-export interface State extends ICommonsStore {
+export interface IState extends ICommonsStore {
   user: IUser;
 }
+
+const defaultReducers = {
+  ...CommonsSlim(),
+  user,
+};
 
 /**
  * 베이스 reducer 설정
@@ -18,17 +24,16 @@ export interface State extends ICommonsStore {
  */
 // 리턴 타입이 무었인지 확인하여야 함
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-const rootReducer = (state: State | undefined, action: AnyAction) => {
+const rootReducer = (state: IState | undefined, action: AnyAction) => {
+  const switchGradeReducers = () => {
+    return { ...defaultReducers };
+  };
   switch (action.type) {
     default:
-      return combineReducers({
-        ...commons,
-        user,
-      } as ReducersMapObject)(state, action);
+      return combineReducers(
+        switchGradeReducers() as ReducersMapObject<IState, AnyAction>
+      )(state, action);
   }
 };
-/**
- * RootState 에 대한 타입 정의
- */
-export type RootState = ReturnType<typeof rootReducer>;
+
 export default rootReducer;

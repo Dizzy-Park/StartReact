@@ -1,4 +1,4 @@
-import crypto, { Cipher, Decipher } from "crypto";
+import crypto from "crypto";
 
 const publicKey = `-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAi2MDZTLGU7tIqsICGByy
@@ -10,10 +10,10 @@ Q2Ev7YS3I/aP/DICId00V6vu2kx+7BmmYq1x69JfGPYFO54H75LkF89ZXoJrDl9s
 kwIDAQAB
 -----END PUBLIC KEY-----`;
 
-interface ICipherParam {
-  CipherKey: Buffer;
-  BinaryLike: Buffer;
-}
+// interface ICipherParam {
+//   CipherKey: Buffer;
+//   BinaryLike: Buffer;
+// }
 
 enum Encode {
   UTF8 = "utf8",

@@ -1,6 +1,6 @@
 import React, { useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { ICommonsStore } from "../..";
+import type { ICommonsStore } from "../..";
 import { useAbsApi } from "../../store/common";
 import { LayerType } from "../AbsLayerType";
 import {
@@ -9,11 +9,11 @@ import {
   rdxLayerSelected,
   rdxContentHeignt,
 } from "./layerR";
-import { ILayerDo } from "./layerVo";
+import type { ILayerDo } from "./layerVo";
 
 export function useCalender<T>(buttonComponent?: React.FC) {
   const dispatch = useDispatch();
-  const apiResult = useAbsApi(buttonComponent);
+  const { apiResult } = useAbsApi(buttonComponent);
   const open = async (data: T, position?: React.MouseEvent<HTMLElement>) => {
     const res = await apiResult(rdxLayers, {
       type: LayerType.CALENDER,
@@ -38,7 +38,6 @@ export function useContentHeight(): {
   set: (getHeight: () => DOMRect) => Promise<void>;
 } {
   const dispatch = useDispatch();
-
   const set = useCallback(async (getHeight: () => DOMRect) => {
     dispatch(rdxContentHeignt(getHeight));
   }, []);
@@ -47,7 +46,11 @@ export function useContentHeight(): {
 
 function useLayer<T>() {
   const { contentHeight, isLayer, data } = useSelector(
-    (state: ICommonsStore) => state.layers
+    (state: ICommonsStore) => ({
+      contentHeight: state.layers?.contentHeight,
+      isLayer: state.layers?.isLayer,
+      data: state.layers?.data,
+    })
   );
   const dispatch = useDispatch();
 

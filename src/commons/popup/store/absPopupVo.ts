@@ -1,4 +1,3 @@
-import React from "react";
 import type { AbsPopupType } from "../AbsPopupType";
 
 export interface IPopupState<
@@ -6,7 +5,7 @@ export interface IPopupState<
   T = any,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   K extends IButton = any,
-  U extends PopupCallBackParam = ButtonState
+  U extends PopupCallBackParam = ButtonState,
 > {
   isPopup: boolean;
   popup: { [key: string]: IPopupDo<T, K, U> };
@@ -38,14 +37,15 @@ export interface IPopupButtn<T extends IButton> {
 }
 
 export type PopupCallBackParam =
-  | { state?: ButtonState }
-  | ButtonState
-  | undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  { state?: ButtonState; [key: string]: any } | ButtonState | undefined;
 
 /** 공용 AbsPopupType 과 외부 설정 type 을 사용할수 있게 설정 */
 export type PopupType = AbsPopupType | string;
 /** Alert 창을 띄울때 message 만으로 띄울수 있게 설정 하기 위한 타입 */
-export type AlertParam = string | { message: string; title?: string };
+export type AlertParam =
+  | string
+  | { message: string; title?: string; subMessage?: string };
 /** Confirm 창을 띄울때 설정 하는 변수 */
 export type ConfirmParam = AlertParam;
 
@@ -67,7 +67,7 @@ export interface IPopupDo<
   T = any,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   K extends IButton = any,
-  U extends PopupCallBackParam = ButtonState
+  U extends PopupCallBackParam = ButtonState,
 > {
   /** 팝업 타입 설정 */
   type: PopupType;
@@ -86,8 +86,8 @@ export interface IPopupDo<
   /** 하단 버튼 영역 수동 설정 컴포넌트 */
   buttonWrapper?: React.FC;
   /** 최대 높이 설정 */
-  maxHeight?: number;
-  device?: "pc" | "mobile";
+  maxHeight?: number | string;
   /** 팝업 닫을때 실행될 콜백 함수 */
+  isDevice?: boolean;
   callBack?: (value?: U) => void;
 }

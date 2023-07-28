@@ -1,9 +1,9 @@
 import { useCallback } from "react";
 import { useSelector } from "react-redux";
-import { fetchLogin, fetchLogout, IUserFetc } from "./userR";
-import { State } from "../..";
+import { fetchLogin, fetchLogout, type IUserFetc } from "./userR";
 import { useApi } from "store/common";
 import useLoading from "commons/loading/store/loadingHook";
+import type { IState } from "store";
 
 export interface IUseUserReturn {
   id: string;
@@ -19,7 +19,7 @@ export interface IUseUserReturn {
  */
 const useUser = (): IUseUserReturn => {
   // 화면상에 표시될 값 설정
-  const { id, uname } = useSelector((state: State) => state.user);
+  const { id, uname } = useSelector((state: IState) => state.user);
   const { on, off } = useLoading();
   const apiResult = useApi();
   /**

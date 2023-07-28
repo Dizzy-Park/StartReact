@@ -1,7 +1,7 @@
 import moment from "moment";
 import React from "react";
 import styled from "styled-components";
-import { IGrideCell } from "./GridVo";
+import type { IGrideCell } from "./GridVo";
 
 /**
  * 텍스트 셀
@@ -40,7 +40,7 @@ export function GridLeftTextCell(props: IGrideCell<[string]>) {
 export function GridLocalStringCell(props: IGrideCell<[number]>) {
   return (
     <>
-      <p>{props.data[0].toLocaleString()}</p>
+      <p>{props.data[0].toLocaleString("ko-kr")}</p>
     </>
   );
 }

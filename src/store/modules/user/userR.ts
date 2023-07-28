@@ -1,6 +1,6 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import Http, { IRes } from "commons/Http";
-import { createAppThunk } from "store/common";
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import Http from "commons/Http";
+import { createAppThunk, type IRes } from "../../common";
 
 // 이름 설정
 const name = "user";

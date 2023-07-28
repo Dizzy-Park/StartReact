@@ -1,5 +1,3 @@
-import React from "react";
-
 export const isTarget = (
   e: MouseEvent,
   r: React.MutableRefObject<null>
@@ -139,28 +137,33 @@ export function dataUrlToBlob(d: string) {
   return new Blob([u8], { type: p[0].split(":")[1] });
 }
 
-export const wait = (delay: number) => {
-  return new Promise((res, rej) => {
-    try {
-      setTimeout(res, delay);
-    } catch (err) {
-      rej(err);
-    }
-  });
-};
+export const wait = (delay: number) =>
+  new Promise(res => setTimeout(res, delay));
 
 export async function forEachPromise<T, R>(
   items: Array<T>,
   func: (item: T, index: number) => Promise<R>
 ): Promise<Array<R>> {
   const ar: Array<R> = [];
-  await items.reduce((promise: Promise<R>, item: T, idx: number) => {
-    // console.log(item)
-    // console.log(idx)
-    return promise.then(async () => {
-      ar.push(await func(item, idx));
-      return promise;
-    });
-  }, Promise.resolve({} as R));
+  await items.reduce(
+    (promise: Promise<R>, item: T, idx: number) => {
+      // console.log(item)
+      // console.log(idx)
+      return promise.then(async () => {
+        ar.push(await func(item, idx));
+        return promise;
+      });
+    },
+    Promise.resolve({} as R)
+  );
   return ar;
+}
+
+export async function lazy<T>(factory: () => Promise<{ default: T }>) {
+  const v = await factory();
+  return v.default;
+}
+
+export function isHttp(url?: string) {
+  return url?.indexOf("http") !== -1 && url?.indexOf("https") !== -1;
 }

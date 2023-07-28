@@ -1,12 +1,12 @@
 import { useButton } from "commons/ui/useUihook";
-import { IValid } from "commons/ui/useValid";
+import { type IValid } from "commons/ui/useValid";
 import { Debounce } from "commons/utils/Debounce";
 import {
   ButtonColorType,
   ButtonSizeType,
   ButtonType,
 } from "components/ComponentsType";
-import { IButtonProps } from "components/componentsVo";
+import { type IButtonProps } from "components/componentsVo";
 import React, { forwardRef } from "react";
 import styled, { css } from "styled-components";
 

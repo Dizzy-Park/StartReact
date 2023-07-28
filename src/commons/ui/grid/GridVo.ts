@@ -50,6 +50,8 @@ export function subkeySplit<T>(data: T, subkey: SKeyData<T> | SubKey<T>) {
   }
 }
 
+export type sortType = "desc" | "asc";
+
 export interface IGridSetting<Data> {
   header: string;
   headerElement?: React.FC<{ header: string }>;
@@ -59,12 +61,16 @@ export interface IGridSetting<Data> {
   element?: React.FC<IGrideCell<any>>;
   isSum?: boolean;
   width?: string;
-  isAllCheck?: boolean;
   link?: IGridSettingLink;
   span?: PropData<Data>;
   tdDisplayNone?: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   button?: any;
+  sort?: {
+    id: string;
+    init?: sortType;
+    activeColor?: string;
+  };
 }
 
 export interface IGrideCell<T> {
@@ -74,4 +80,15 @@ export interface IGrideCell<T> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   buttonOption?: any;
   change: (position: IGridPosition, value?: T) => void;
+}
+
+export interface IGrideSub<T> {
+  position: IGridPosition;
+  data: T;
+}
+
+export interface IGridPageableDo {
+  total: number;
+  page: number;
+  size: number;
 }
